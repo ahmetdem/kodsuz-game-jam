@@ -328,87 +328,6 @@ function HeaderStrip() {
   );
 }
 
-function StandPoster() {
-  return (
-    <div className="mx-auto max-w-4xl p-6 print:p-0">
-      <div className="relative overflow-hidden rounded-3xl border bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-8 text-white shadow-2xl">
-        <div className="absolute -right-24 -top-24 h-64 w-64 rotate-12 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -bottom-20 -left-10 h-64 w-64 -rotate-6 rounded-full bg-white/10 blur-2xl" />
-
-        <div className="flex items-center gap-3">
-          <Trophy className="h-8 w-8" />
-          <h2 className="text-3xl font-black tracking-tight">{JAM.title}</h2>
-        </div>
-
-        <p className="mt-2 text-lg/6 text-white/90">Kod yok, fikir çok! {JAM.host}'de 1 günde oyun tasarım belgeni (OTB) hazırla.</p>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <Card className="bg-white/10 text-white backdrop-blur-md">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Ödüller</CardTitle>
-              <CardDescription className="text-white/80">Toplam {formatTL(JAM.prizes.reduce((a,b)=>a+b.amount,0))}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-1 text-sm">
-              {JAM.prizes.map((p) => (
-                <div key={p.place} className="flex items-center justify-between">
-                  <span className="opacity-90">{p.place}. Ödül</span>
-                  <span className="font-semibold">{formatTL(p.amount)}</span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 text-white backdrop-blur-md">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Zaman / Yer</CardTitle>
-              <CardDescription className="text-white/80">{JAM.date}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-1 text-sm">
-              {JAM.timeline.map((t, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <span className="opacity-90">{t.label}</span>
-                  <span className="font-semibold">{t.time}</span>
-                </div>
-              ))}
-              <div className="pt-2 text-xs opacity-80">{JAM.location}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 text-white backdrop-blur-md">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Katılım</CardTitle>
-              <CardDescription className="text-white/80">{JAM.teamSize}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center gap-2"><Clock className="h-4 w-4"/> 16:00 sonrası ön eleme + jüri</div>
-              <div className="flex items-center gap-2"><Users className="h-4 w-4"/> 1–3 kişi takımlar</div>
-              <div className="flex items-center gap-2"><FileText className="h-4 w-4"/> Teslim: PDF – OTB</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="text-sm/6">
-            <div className="font-semibold">Kısaca</div>
-            <div className="opacity-90">Tema açıklanır → 5 saat üretim → Ön eleme (30 dk) → Jüri (1,5 saat)</div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {JAM.qrImageUrl ? (
-              <img src={JAM.qrImageUrl} alt="Kayıt QR" className="h-24 w-24 rounded bg-white p-2" />
-            ) : (
-              <div className="grid h-24 w-24 place-items-center rounded bg-white/20 text-xs">QR</div>
-            )}
-            <Button variant="secondary" onClick={() => window.print()} className="font-semibold">
-              Yazdır / PDF
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function JamScoringAndStand() {
   return (
     <div className="mx-auto max-w-6xl p-6">
@@ -416,7 +335,6 @@ export default function JamScoringAndStand() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <TabsList className="bg-muted/60">
             <TabsTrigger value="score">Puanlandırma</TabsTrigger>
-            <TabsTrigger value="poster">Stand Afişi</TabsTrigger>
           </TabsList>
 
           <div className="flex items-center gap-2">
@@ -432,10 +350,6 @@ export default function JamScoringAndStand() {
           <RubricTable />
           <ScoreScale />
           <LiveScoringDemo />
-        </TabsContent>
-
-        <TabsContent value="poster">
-          <StandPoster />
         </TabsContent>
       </Tabs>
     </div>
