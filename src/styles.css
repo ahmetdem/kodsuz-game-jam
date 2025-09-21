@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-from: 147 51 234; /* purple-600 */
+  --brand-via: 79 70 229;   /* indigo-600 */
+  --brand-to: 37 99 235;    /* blue-600 */
+}
+
+@media print {
+  .print-a3 { width: 297mm; height: 420mm; } /* A3 portrait */
+  @page { size: A3; margin: 10mm; }
+  .no-print { display: none !important; }
+}
