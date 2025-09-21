@@ -621,7 +621,7 @@ function Leaderboard() {
   const [data, setData] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
 
-  const load = React.useCallback(async () => {
+  const load = async () => {
     try {
       setLoading(true);
       const r = await fetch("/api/leaderboard?event=kgj-2025", { cache: "no-store" });
@@ -632,25 +632,14 @@ function Leaderboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  React.useEffect(() => {
-    load();
-    const t = setInterval(load, 5000);
-    const onVis = () => { if (document.visibilityState === "visible") load(); };
-    document.addEventListener("visibilitychange", onVis);
-    return () => {
-      clearInterval(t);
-      document.removeEventListener("visibilitychange", onVis);
-    };
-  }, [load]);
+  };
 
   return (
     <Card>
       <CardHeader className="flex items-center justify-between">
         <div>
           <CardTitle>Leaderboard</CardTitle>
-          <CardDescription>Takım başına jüri ortalamaları (canlı)</CardDescription>
+          <CardDescription>Takım başına jüri ortalamaları</CardDescription>
         </div>
         <Button variant="secondary" onClick={load} disabled={loading}>
           {loading ? "Yükleniyor..." : "Yenile"}
