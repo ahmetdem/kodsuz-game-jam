@@ -180,26 +180,21 @@ function ScoreScale() {
   return (
     <Card className="border-dashed">
       <CardHeader className="pb-3">
-        <CardTitle>Değerlendirme Ölçeği (0–5)</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg sm:text-xl">Değerlendirme Ölçeği (0–5)</CardTitle>
+        <CardDescription className="text-sm sm:text-base">
           Jüri her kriter için 0–5 puan verir; sistem ağırlığa göre otomatik 100 puana ölçekler.
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-2 text-sm">
-        <div className="grid grid-cols-5 gap-2">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} className="rounded-xl border p-3">
-              <div className="text-xs text-muted-foreground">Seviye</div>
-              <div className="text-2xl font-semibold">{i}</div>
-              <div className="mt-1 text-xs">Beklenen: {RUBRIC[0].anchors[i]}</div>
-            </div>
-          ))}
-          <div className="rounded-xl border p-3">
+      <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 text-sm">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="rounded-xl border p-2 sm:p-3 min-w-0">
             <div className="text-xs text-muted-foreground">Seviye</div>
-            <div className="text-2xl font-semibold">5</div>
-            <div className="mt-1 text-xs">Beklenen: {RUBRIC[0].anchors[5]}</div>
+            <div className="text-xl sm:text-2xl font-semibold">{i}</div>
+            <div className="mt-1 text-xs break-words">
+              Beklenen: {RUBRIC[0].anchors[i]}
+            </div>
           </div>
-        </div>
+        ))}
       </CardContent>
     </Card>
   );
