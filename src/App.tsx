@@ -142,6 +142,15 @@ const RUBRIC = [
   },
 ] as const;
 
+const EVENT_ID = "kgj-2025"; // etkinlik kodu
+const API_SCORE = "/api/score"; // vercel function yolu
+
+function calcTotal(scores: Record<RubricKey, number>) {
+  let sum = 0;
+  for (const r of RUBRIC) sum += ((scores[r.key] ?? 0) / 5) * r.weight;
+  return Math.round(sum);
+}
+
 type RubricKey = (typeof RUBRIC)[number]["key"];
 
 
@@ -456,7 +465,7 @@ function HeaderStrip() {
     <div className="rounded-2xl border bg-gradient-to-br from-indigo-50 to-purple-50 p-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{JAM.title} – Rehber</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{JAM.title} – Etkinlik Rehberi</h1>
           <p className="text-sm text-muted-foreground">
             {JAM.teamSize} • Ödüller: {JAM.prizes.map((p) => `${p.place}. ${formatTL(p.amount)}`).join(" • ")}
           </p>
@@ -479,6 +488,187 @@ function HeaderStrip() {
   );
 }
 
+function JuryPanel() {
+  const [token, setToken] = React.useState<string | null>(() => sessionStorage.getItem("juryToken"));
+  const [pwd, setPwd] = React.useState("");
+  const [judge, setJudge] = React.useState("");
+  const [team, setTeam] = React.useState("");
+
+  const [scores, setScores] = React.useState<Record<RubricKey, number>>({
+    theme: 3, loop: 3, originality: 3, doc: 3, feas: 3, visual: 3,
+  });
+  const total = calcTotal(scores);
+
+  async function submit() {
+    if (!token) return alert("Önce parolayla giriş yapın.");
+    if (!judge.trim() || !team.trim()) return alert("Jüri ve Takım alanları zorunlu.");
+    const payload: any = { event: EVENT_ID, judge, team, total };
+    for (const r of RUBRIC) payload[r.key] = scores[r.key] ?? 0;
+
+    const res = await fetch(API_SCORE, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (res.status === 200) {
+      alert("Kaydedildi ✅");
+    } else if (res.status === 401) {
+      alert("Parola hatalı veya yetkisiz ❌");
+    } else {
+      const j = await res.json().catch(() => ({}));
+      alert("Hata: " + (j.error || res.statusText));
+    }
+  }
+
+  if (!token) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Jüri Girişi</CardTitle>
+          <CardDescription>Bu panel yalnızca jüri içindir.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2">
+          <div>
+            <Label>Parola</Label>
+            <Input type="password" value={pwd} onChange={e => setPwd(e.target.value)} placeholder="Jüri parolası" />
+          </div>
+          <div className="flex items-end gap-2">
+            <Button
+              onClick={() => {
+                if (!pwd.trim()) return;
+                sessionStorage.setItem("juryToken", pwd.trim());
+                setToken(pwd.trim());
+              }}
+            >
+              Giriş Yap
+            </Button>
+            <Button variant="secondary" onClick={() => { sessionStorage.removeItem("juryToken"); setToken(null); }}>
+              Temizle
+            </Button>
+          </div>
+          <div className="col-span-full text-xs text-muted-foreground">
+            Not: Asıl doğrulama sunucudadır. Yanlış parola ile gönderim reddedilir.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Jüri Puanlama</CardTitle>
+        <CardDescription>Parola doğrulandı. Puanları girip gönderin.</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-6">
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <Label>Jüri</Label>
+            <Input value={judge} onChange={e => setJudge(e.target.value)} placeholder="Ad Soyad" className="w-56" />
+          </div>
+          <div>
+            <Label>Takım</Label>
+            <Input value={team} onChange={e => setTeam(e.target.value)} placeholder="Takım Adı" className="w-56" />
+          </div>
+          <div className="ml-auto text-right">
+            <div className="text-xs text-muted-foreground">Toplam (0–100)</div>
+            <div className="text-3xl font-bold">{total}</div>
+            <Progress value={total} className="mt-1 h-2" />
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {RUBRIC.map((r) => (
+            <div key={r.key} className="rounded-xl border p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <div>
+                  <div className="font-medium">{r.title}</div>
+                  <div className="text-xs text-muted-foreground">Ağırlık: {r.weight}</div>
+                </div>
+                <Badge variant="outline">0–5</Badge>
+              </div>
+              <input
+                type="range" min={0} max={5} step={1}
+                value={scores[r.key] ?? 0}
+                onChange={(e) => setScores(s => ({ ...s, [r.key]: Number(e.target.value) }))}
+                className="w-full"
+              />
+              <div className="mt-2 text-xs text-muted-foreground">
+                İpucu: {r.anchors[scores[r.key] ?? 0]}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Button variant="secondary" onClick={() => {
+            sessionStorage.removeItem("juryToken"); setToken(null);
+          }}>
+            Çıkış Yap
+          </Button>
+          <Button onClick={submit}>Puanları Gönder</Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+
+function Leaderboard() {
+  const [data, setData] = React.useState([]);
+
+  async function load() {
+    try {
+      const r = await fetch("/api/leaderboard?event=kgj-2025", { cache: "no-store" });
+      const j = await r.json();
+      setData(j);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  React.useEffect(() => {
+    load();
+    const t = setInterval(load, 5000); // 5 sn'de bir güncelle
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Leaderboard</CardTitle>
+        <CardDescription>Takım başına jüri ortalamaları (canlı)</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-muted-foreground">
+              <th className="py-2">Sıra</th>
+              <th className="py-2">Takım</th>
+              <th className="py-2">Ortalama</th>
+              <th className="py-2">Jüri</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((row: any, i: number) => (
+              <tr key={row.team} className="border-t">
+                <td className="py-2">{i + 1}</td>
+                <td className="py-2 font-medium">{row.team}</td>
+                <td className="py-2">{row.avg}</td>
+                <td className="py-2">{row.count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function JamScoringAndStand() {
   const [activeTab, setActiveTab] = useState("score");
 
@@ -493,9 +683,11 @@ export default function JamScoringAndStand() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <TabsList className="bg-muted/60">
-            <TabsTrigger value="score">Puanlandırma</TabsTrigger>
+            <TabsTrigger value="score">Rehber</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
             <TabsTrigger value="submit">Teslim</TabsTrigger>
+            <TabsTrigger value="jury">Jüri</TabsTrigger>
+            <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
           </TabsList>
 
           <div className="flex items-center gap-2">
@@ -655,6 +847,16 @@ export default function JamScoringAndStand() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="jury" className="space-y-6">
+          <HeaderStrip />
+          <JuryPanel />
+        </TabsContent>
+
+        <TabsContent value="leaderboard" className="space-y-6">
+          <HeaderStrip />
+          <Leaderboard />
         </TabsContent>
 
         {/* Floating WhatsApp Button */}
