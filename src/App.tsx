@@ -144,6 +144,25 @@ const RUBRIC = [
 
 type RubricKey = (typeof RUBRIC)[number]["key"];
 
+
+function pad(n: number) { return n.toString().padStart(2, '0') }
+function msToHMS(ms: number) {
+  if (ms < 0) ms = 0;
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${pad(h)}:${pad(m)}:${pad(sec)}`;
+}
+function useNow(tickMs = 1000) {
+  const [now, setNow] = React.useState(Date.now());
+  React.useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), tickMs);
+    return () => clearInterval(t);
+  }, [tickMs]);
+  return now;
+}
+
 function formatTL(n: number) {
   return n.toLocaleString("tr-TR", { minimumFractionDigits: 0 }) + " TL";
 }
@@ -306,6 +325,132 @@ function LiveScoringDemo() {
   );
 }
 
+const DEADLINES = {
+  submitISO: "2025-09-25T16:00:00+03:00",
+  juryEndISO: "2025-09-25T18:00:00+03:00",
+};
+
+function DeadlineBar() {
+  const now = useNow(1000);
+  const submit = new Date(DEADLINES.submitISO).getTime();
+  const juryEnd = new Date(DEADLINES.juryEndISO).getTime();
+
+  const toSubmit = submit - now;
+  const toJuryEnd = juryEnd - now;
+
+  return (
+    <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <div className="rounded-xl border bg-white p-4">
+        <div className="text-xs text-gray-500">Son Teslime Kalan</div>
+        <div className="mt-1 text-2xl font-bold">{msToHMS(toSubmit)}</div>
+      </div>
+      <div className="rounded-xl border bg-white p-4">
+        <div className="text-xs text-gray-500">Jüri Bitişine Kalan</div>
+        <div className="mt-1 text-2xl font-bold">{msToHMS(toJuryEnd)}</div>
+      </div>
+    </div>
+  );
+}
+
+function ThemeRevealCard() {
+  // Saat 11:00'de açıklanacak
+  const revealAtISO = "2025-09-25T11:00:00+03:00";
+  const now = Date.now();
+  const revealAt = new Date(revealAtISO).getTime();
+
+  const autoRevealed = now >= revealAt;
+  const revealed = autoRevealed;
+
+  const THEME = "Zamanın Ötesi"; // Etkinlik günü değiştirilir
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>TEMA</CardTitle>
+        <CardDescription>
+          Tema açıklanma saati:{" "}
+          {revealAtISO.replace("T", " ").replace("+03:00", " (GMT+3)")}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex items-center justify-between gap-4">
+        <div
+          className={`text-2xl font-bold ${revealed ? "" : "blur-md select-none"
+            }`}
+        >
+          {THEME}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function sanitize(s: string) {
+  return s
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "") // aksan temizle
+    .replace(/[^a-zA-Z0-9-_ ]/g, "")
+    .trim()
+    .replace(/\s+/g, "_");
+}
+
+function FilenameHelper() {
+  const [team, setTeam] = React.useState("");
+  const [game, setGame] = React.useState("");
+  const [showToast, setShowToast] = React.useState(false);
+
+  const filename = `${sanitize(team)}_${sanitize(game)}.pdf`;
+
+  function handleCopy() {
+    navigator.clipboard.writeText(filename).then(() => {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2500);
+    });
+  }
+
+  return (
+    <div>
+      <div className="rounded-lg border bg-white p-4">
+        <div className="grid gap-3 md:grid-cols-2">
+          <div>
+            <Label>Takım Adı</Label>
+            <Input value={team} onChange={e => setTeam(e.target.value)} placeholder="FireTeam" />
+          </div>
+          <div>
+            <Label>Oyun Adı</Label>
+            <Input value={game} onChange={e => setGame(e.target.value)} placeholder="SpaceRunner" />
+          </div>
+        </div>
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <div className="text-sm text-gray-600 break-all">
+            Önerilen: <code className="font-medium">{filename}</code>
+          </div>
+          <Button variant="secondary" onClick={handleCopy}>
+            Kopyala
+          </Button>
+        </div>
+      </div>
+
+      {/* Toast */}
+      {showToast && (
+        <div
+          className="fixed top-6 right-6 z-50 rounded-lg bg-green-600 px-4 py-2 text-white shadow-lg
+               transform transition-all duration-500 ease-out
+               animate-in slide-in-from-top-4 fade-in zoom-in-95
+               data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top-4 
+               data-[state=closed]:fade-out data-[state=closed]:zoom-out-95"
+        >
+          <div className="flex items-center gap-2">
+            <div className="h-4 w-4 rounded-full bg-white/20 flex items-center justify-center">
+              <div className="h-2 w-2 rounded-full bg-white animate-pulse"></div>
+            </div>
+            <span>Kopyalandı</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function HeaderStrip() {
   return (
     <div className="rounded-2xl border bg-gradient-to-br from-indigo-50 to-purple-50 p-5">
@@ -363,6 +508,8 @@ export default function JamScoringAndStand() {
 
         <TabsContent value="score" className="space-y-6">
           <HeaderStrip />
+          <DeadlineBar />
+          <ThemeRevealCard />
           <RubricTable />
           <ScoreScale />
           <LiveScoringDemo />
@@ -501,6 +648,8 @@ export default function JamScoringAndStand() {
                         <li>• Telif ve etik beyanları</li>
                       </ul>
                     </div>
+
+                    <FilenameHelper />
                   </div>
                 </div>
               </div>
