@@ -679,16 +679,14 @@ export default function JamScoringAndStand() {
   return (
     <div className="mx-auto max-w-6xl p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          <TabsList className="bg-muted/60 flex-1">
+          <TabsList className="bg-muted/60 flex overflow-x-auto gap-2 scrollbar-none">
             <TabsTrigger value="score">Rehber</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
             <TabsTrigger value="submit">Teslim</TabsTrigger>
             <TabsTrigger value="jury">Jüri</TabsTrigger>
             <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
           </TabsList>
-
           <div className="flex items-center gap-2 shrink-0">
             <Trophy className="h-5 w-5 text-yellow-500" />
             <span className="text-sm text-muted-foreground text-wrap">
@@ -696,7 +694,6 @@ export default function JamScoringAndStand() {
             </span>
           </div>
         </div>
-
 
         <TabsContent value="score" className="space-y-6">
           <HeaderStrip />
