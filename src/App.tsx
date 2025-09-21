@@ -617,53 +617,70 @@ function JuryPanel() {
   );
 }
 
-
 function Leaderboard() {
-  const [data, setData] = React.useState([]);
+  const [data, setData] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(false);
 
-  async function load() {
+  const load = React.useCallback(async () => {
     try {
+      setLoading(true);
       const r = await fetch("/api/leaderboard?event=kgj-2025", { cache: "no-store" });
       const j = await r.json();
-      setData(j);
+      setData(Array.isArray(j) ? j : []);
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
-  }
+  }, []);
 
   React.useEffect(() => {
     load();
-    const t = setInterval(load, 5000); // 5 sn'de bir güncelle
-    return () => clearInterval(t);
-  }, []);
+    const t = setInterval(load, 5000);
+    const onVis = () => { if (document.visibilityState === "visible") load(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [load]);
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Leaderboard</CardTitle>
-        <CardDescription>Takım başına jüri ortalamaları (canlı)</CardDescription>
+      <CardHeader className="flex items-center justify-between">
+        <div>
+          <CardTitle>Leaderboard</CardTitle>
+          <CardDescription>Takım başına jüri ortalamaları (canlı)</CardDescription>
+        </div>
+        <Button variant="secondary" onClick={load} disabled={loading}>
+          {loading ? "Yükleniyor..." : "Yenile"}
+        </Button>
       </CardHeader>
       <CardContent>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-muted-foreground">
-              <th className="py-2">Sıra</th>
-              <th className="py-2">Takım</th>
-              <th className="py-2">Ortalama</th>
-              <th className="py-2">Jüri</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row: any, i: number) => (
-              <tr key={row.team} className="border-t">
-                <td className="py-2">{i + 1}</td>
-                <td className="py-2 font-medium">{row.team}</td>
-                <td className="py-2">{row.avg}</td>
-                <td className="py-2">{row.count}</td>
+        {data.length === 0 ? (
+          <div className="text-sm text-muted-foreground">Henüz puan yok.</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-muted-foreground">
+                <th className="py-2">Sıra</th>
+                <th className="py-2">Takım</th>
+                <th className="py-2">Ortalama</th>
+                <th className="py-2">Jüri</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.map((row: any, i: number) => (
+                <tr key={row.team} className="border-t">
+                  <td className="py-2">{i + 1}</td>
+                  <td className="py-2 font-medium">{row.team}</td>
+                  <td className="py-2">{row.avg}</td>
+                  <td className="py-2">{row.count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </CardContent>
     </Card>
   );
