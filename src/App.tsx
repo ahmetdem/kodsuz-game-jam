@@ -42,6 +42,10 @@ const JAM = {
   qrImageUrl: "", // varsa afiş için QR görsel URL'i ekleyin
 };
 
+
+const WHATSAPP_LINK = "https://chat.whatsapp.com/ElWX5O1UZ2lAZ0U4QEBVPu"; // kendi davet linkin
+const DRIVE_LINK = "https://drive.google.com/drive/folders/17DvykxxFIy55eh-tV9RM--Tw5LZ9izUV?usp=drive_link";
+
 // 100 puanlık rubrik – ağırlıklar toplamı 100 olmalı
 const RUBRIC = [
   {
@@ -335,6 +339,8 @@ export default function JamScoringAndStand() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <TabsList className="bg-muted/60">
             <TabsTrigger value="score">Puanlandırma</TabsTrigger>
+            <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+            <TabsTrigger value="submit">Teslim</TabsTrigger>
           </TabsList>
 
           <div className="flex items-center gap-2">
@@ -350,6 +356,145 @@ export default function JamScoringAndStand() {
           <RubricTable />
           <ScoreScale />
           <LiveScoringDemo />
+        </TabsContent>
+
+        <TabsContent value="whatsapp" className="space-y-6">
+          <HeaderStrip />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-green-600" />
+                WhatsApp Grubu
+              </CardTitle>
+              <CardDescription>
+                Duyurular, sorular ve etkinlik güncellemeleri için gruba katılın.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* QR Kod */}
+                <div className="flex flex-col items-center justify-center rounded-xl border bg-gradient-to-br from-green-50 to-emerald-50 p-6">
+                  <div className="h-48 w-48 rounded-xl bg-white p-4 shadow-sm">
+                    <img
+                      src="/wa-qr.png"
+                      alt="WhatsApp QR Kod"
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
+                  <p className="mt-4 text-sm text-muted-foreground text-center">
+                    QR kodu telefonunuzla taratın
+                  </p>
+                </div>
+
+                {/* Link ve Buton */}
+                <div className="flex flex-col justify-center space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Direkt Link</Label>
+                    <div className="rounded-lg border bg-muted/30 p-3">
+                      <code className="text-sm break-all text-muted-foreground">
+                        {WHATSAPP_LINK}
+                      </code>
+                    </div>
+                  </div>
+
+                  <a href={WHATSAPP_LINK} target="_blank" rel="noreferrer" className="w-full">
+                    <Button className="w-full bg-green-600 hover:bg-green-700">
+                      <Users className="mr-2 h-4 w-4" />
+                      WhatsApp Grubuna Katıl
+                    </Button>
+                  </a>
+
+                  <div className="rounded-lg border bg-blue-50/50 p-3">
+                    <p className="text-xs text-muted-foreground">
+                      💡 <strong>İpucu:</strong> Grupta sessiz mod açık tutarak sadece önemli duyuruları alabilirsiniz.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="submit" className="space-y-6">
+          <HeaderStrip />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                Proje Teslimi
+              </CardTitle>
+              <CardDescription>
+                Oyun tasarım belgenizi (OTB) buradan teslim edin. Son teslim: <strong>16:00</strong>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                <div className="flex items-start gap-3">
+                  <Clock className="h-5 w-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-yellow-800">Önemli Hatırlatma</h4>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      Son teslim saati <strong>16:00</strong>'dır. Geç teslimler kabul edilmeyecektir.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="flex flex-col items-center justify-center rounded-xl border bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
+                  <div className="h-48 w-48 rounded-xl bg-white p-4 shadow-sm">
+                    <img
+                      src="/drive-qr.png"
+                      alt="Google Drive QR Kod"
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
+                  <p className="mt-4 text-sm text-muted-foreground text-center">
+                    QR kodu telefonunuzla taratın
+                  </p>
+                </div>
+
+                <div className="flex flex-col justify-center space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Drive Klasör Linki</Label>
+                    <div className="rounded-lg border bg-muted/30 p-3">
+                      <code className="text-xs break-all text-muted-foreground">
+                        {DRIVE_LINK}
+                      </code>
+                    </div>
+                  </div>
+
+                  <a href={DRIVE_LINK} target="_blank" rel="noreferrer" className="w-full">
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                      <FileText className="mr-2 h-4 w-4" />
+                      Drive Klasörünü Aç
+                    </Button>
+                  </a>
+
+                  <div className="space-y-3">
+                    <div className="rounded-lg border bg-green-50/50 p-3">
+                      <h4 className="text-sm font-medium text-green-800 mb-2">📄 Dosya Formatı</h4>
+                      <ul className="text-xs text-green-700 space-y-1">
+                        <li>• Format: <strong>PDF</strong></li>
+                        <li>• Adlandırma: <code>TakımAdı_OyunAdı.pdf</code></li>
+                        <li>• Örnek: <code>FireTeam_SpaceRunner.pdf</code></li>
+                      </ul>
+                    </div>
+
+                    <div className="rounded-lg border bg-orange-50/50 p-3">
+                      <h4 className="text-sm font-medium text-orange-800 mb-2">📋 Kontrol Listesi</h4>
+                      <ul className="text-xs text-orange-700 space-y-1">
+                        <li>• Kapak sayfası ve oyun logosu</li>
+                        <li>• Çekirdek oynanış döngüsü açıklaması</li>
+                        <li>• Görsel/şema/moodboard</li>
+                        <li>• MVP tanımı ve risk analizi</li>
+                        <li>• Telif ve etik beyanları</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
