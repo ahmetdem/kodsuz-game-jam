@@ -42,11 +42,8 @@ const JAM = {
   qrImageUrl: "", // varsa afiş için QR görsel URL'i ekleyin
 };
 
-
 const WHATSAPP_LINK = "https://chat.whatsapp.com/ElWX5O1UZ2lAZ0U4QEBVPu"; // kendi davet linkin
 const DRIVE_LINK = "https://drive.google.com/drive/folders/17DvykxxFIy55eh-tV9RM--Tw5LZ9izUV?usp=drive_link";
-
-
 
 // 100 puanlık rubrik – ağırlıklar toplamı 100 olmalı
 const RUBRIC = [
@@ -682,7 +679,7 @@ export default function JamScoringAndStand() {
   return (
     <div className="mx-auto max-w-6xl p-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <TabsList className="bg-muted/60">
             <TabsTrigger value="score">Rehber</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
@@ -690,8 +687,7 @@ export default function JamScoringAndStand() {
             <TabsTrigger value="jury">Jüri</TabsTrigger>
             <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
           </TabsList>
-
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Trophy className="h-5 w-5 text-yellow-500" />
             <span className="text-sm text-muted-foreground">
               Ödüller: {JAM.prizes.map((p) => `${p.place}. ${formatTL(p.amount)}`).join(" • ")}
