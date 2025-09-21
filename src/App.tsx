@@ -866,14 +866,14 @@ export default function JamScoringAndStand() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="jury" className="space-y-6">
-          <HeaderStrip />
-          <JuryPanel />
-        </TabsContent>
-
         <TabsContent value="leaderboard" className="space-y-6">
           <HeaderStrip />
           <Leaderboard />
+        </TabsContent>
+
+        <TabsContent value="jury" className="space-y-6">
+          <HeaderStrip />
+          <JuryPanel />
         </TabsContent>
 
         {/* Floating WhatsApp Button */}
