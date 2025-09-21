@@ -21,8 +21,18 @@ export default async function handler(req, res) {
 
     let items = [];
     for (const s of raw) {
-      try { items.push(JSON.parse(s)); } catch {}
+      try { 
+        // Eğer s zaten bir obje ise JSON.parse yapmaya gerek yok
+        if (typeof s === 'object' && s !== null) {
+          items.push(s);
+        } else {
+          items.push(JSON.parse(s)); 
+        }
+      } catch (err) {
+        // console.log("[leaderboard] JSON parse error for:", s, "error:", err.message);
+      }
     }
+    // DEBUG: console.log("[leaderboard] parsed items count:", items.length);
 
     const byTeam = new Map();
     for (const r of items) {
