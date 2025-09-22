@@ -139,6 +139,19 @@ const RUBRIC = [
   },
 ] as const;
 
+const JURY_MEMBERS = [
+  "Mehmet Ulvi Şimşek",
+  "Ahmet Yusuf Demir",
+  "Can Karabulut",
+  "Muhammet Berk Ünsal",
+  "Efe Acer",
+] as const;
+
+const TEAM_NAMES: readonly string[] = [
+  // "Takım Alpha",
+  // "Takım Beta",
+]; // Jam günü kesinleşen takım adlarıyla güncelleyin
+
 const EVENT_ID = "kgj-2025"; // etkinlik kodu
 const API_SCORE = "/api/score"; // vercel function yolu
 
@@ -483,18 +496,25 @@ function HeaderStrip() {
 function JuryPanel() {
   const [token, setToken] = React.useState<string | null>(() => sessionStorage.getItem("juryToken"));
   const [pwd, setPwd] = React.useState("");
-  const [judge, setJudge] = React.useState("");
-  const [team, setTeam] = React.useState("");
+  const [judge, setJudge] = React.useState<string>(JURY_MEMBERS[0]);
+  const [teamSelection, setTeamSelection] = React.useState<string>("");
+  const [customTeam, setCustomTeam] = React.useState("");
 
   const [scores, setScores] = React.useState<Record<RubricKey, number>>({
     theme: 3, loop: 3, originality: 3, doc: 3, feas: 3, visual: 3,
   });
   const total = calcTotal(scores);
 
+  const resolvedTeam = TEAM_NAMES.length === 0
+    ? customTeam
+    : teamSelection === "__custom__"
+      ? customTeam
+      : teamSelection;
+
   async function submit() {
     if (!token) return alert("Önce parolayla giriş yapın.");
-    if (!judge.trim() || !team.trim()) return alert("Jüri ve Takım alanları zorunlu.");
-    const payload: any = { event: EVENT_ID, judge, team, total };
+    if (!judge.trim() || !resolvedTeam.trim()) return alert("Jüri ve Takım alanları zorunlu.");
+    const payload: any = { event: EVENT_ID, judge, team: resolvedTeam.trim(), total };
     for (const r of RUBRIC) payload[r.key] = scores[r.key] ?? 0;
 
     const res = await fetch(API_SCORE, {
@@ -559,12 +579,62 @@ function JuryPanel() {
       <CardContent className="grid gap-6">
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <Label>Jüri</Label>
-            <Input value={judge} onChange={e => setJudge(e.target.value)} placeholder="Ad Soyad" className="w-56" />
+            <div>
+              <Label> Jüri Üyesi</Label>
+            </div>
+            <select
+              value={judge}
+              onChange={(e) => setJudge(e.target.value)}
+              className="w-56 rounded-lg border px-3 py-2 text-sm bg-white"
+            >
+              {JURY_MEMBERS.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
           </div>
-          <div>
+          <div className="flex flex-col gap-2">
             <Label>Takım</Label>
-            <Input value={team} onChange={e => setTeam(e.target.value)} placeholder="Takım Adı" className="w-56" />
+            {TEAM_NAMES.length > 0 ? (
+              <>
+                <select
+                  value={teamSelection || ""}
+                  onChange={(e) => {
+                    setTeamSelection(e.target.value);
+                    if (e.target.value !== "__custom__") {
+                      setCustomTeam("");
+                    }
+                  }}
+                  className="w-56 rounded-lg border px-3 py-2 text-sm bg-white"
+                >
+                  <option value="" disabled>
+                    Takım seçin
+                  </option>
+                  {TEAM_NAMES.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                  <option value="__custom__">Diğer / Yeni Takım</option>
+                </select>
+                {teamSelection === "__custom__" && (
+                  <Input
+                    value={customTeam}
+                    onChange={(e) => setCustomTeam(e.target.value)}
+                    placeholder="Takım adını yazın"
+                    className="w-56"
+                  />
+                )}
+              </>
+            ) : (
+              <Input
+                value={customTeam}
+                onChange={(e) => setCustomTeam(e.target.value)}
+                placeholder="Takım adını yazın"
+                className="w-56"
+              />
+            )}
           </div>
           <div className="ml-auto text-right">
             <div className="text-xs text-muted-foreground">Toplam (0–100)</div>
@@ -609,11 +679,11 @@ function JuryPanel() {
   );
 }
 
-function Leaderboard() {
+function Leaderboard({ active }: { active: boolean }) {
   const [data, setData] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
 
-  const load = async () => {
+  const load = React.useCallback(async () => {
     try {
       setLoading(true);
       const r = await fetch("/api/leaderboard?event=kgj-2025", { cache: "no-store" });
@@ -624,7 +694,13 @@ function Leaderboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  React.useEffect(() => {
+    if (active) {
+      load();
+    }
+  }, [active, load]);
 
   return (
     <Card>
@@ -848,7 +924,7 @@ export default function JamScoringAndStand() {
 
         <TabsContent value="leaderboard" className="space-y-6">
           <HeaderStrip />
-          <Leaderboard />
+          <Leaderboard active={activeTab === "leaderboard"} />
         </TabsContent>
 
         <TabsContent value="jury" className="space-y-6">
