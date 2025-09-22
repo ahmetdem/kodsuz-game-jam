@@ -43,7 +43,7 @@ const JAM = {
 };
 
 const WHATSAPP_LINK = "https://chat.whatsapp.com/ElWX5O1UZ2lAZ0U4QEBVPu"; // kendi davet linkin
-const DRIVE_LINK = "https://drive.google.com/drive/folders/17DvykxxFIy55eh-tV9RM--Tw5LZ9izUV?usp=drive_link";
+const SUBMIT_FORM_LINK = "https://forms.gle/iWEmbchks4xkVWqX7";
 
 // 100 puanlık rubrik – ağırlıklar toplamı 100 olmalı
 const RUBRIC = [
@@ -846,7 +846,7 @@ export default function JamScoringAndStand() {
                 Proje Teslimi
               </CardTitle>
               <CardDescription>
-                Oyun tasarım belgenizi (OTB) buradan teslim edin. Son teslim: <strong>16:00</strong>
+                Oyun tasarım belgenizi (OTB) Google Form üzerinden yükleyin. Son teslim: <strong>16:00</strong>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -867,29 +867,29 @@ export default function JamScoringAndStand() {
                   <div className="h-48 w-48 rounded-xl bg-white p-4 shadow-sm">
                     <img
                       src="/drive-qr.png"
-                      alt="Google Drive QR Kod"
+                      alt="Google Form QR Kod"
                       className="h-full w-full object-contain"
                     />
                   </div>
                   <p className="mt-4 text-sm text-muted-foreground text-center">
-                    QR kodu telefonunuzla taratın
+                    QR kodu telefonunuzla taratarak formu açın
                   </p>
                 </div>
 
                 <div className="flex flex-col justify-center space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Drive Klasör Linki</Label>
+                    <Label className="text-sm font-medium">Teslim Formu</Label>
                     <div className="rounded-lg border bg-muted/30 p-3">
                       <code className="text-xs break-all text-muted-foreground">
-                        {DRIVE_LINK}
+                        {SUBMIT_FORM_LINK}
                       </code>
                     </div>
                   </div>
 
-                  <a href={DRIVE_LINK} target="_blank" rel="noreferrer" className="w-full">
+                  <a href={SUBMIT_FORM_LINK} target="_blank" rel="noreferrer" className="w-full">
                     <Button className="w-full bg-blue-600 hover:bg-blue-700">
                       <FileText className="mr-2 h-4 w-4" />
-                      Drive Klasörünü Aç
+                      Teslim Formunu Aç
                     </Button>
                   </a>
 
@@ -900,6 +900,7 @@ export default function JamScoringAndStand() {
                         <li>• Format: <strong>PDF</strong></li>
                         <li>• Adlandırma: <code>TakımAdı_OyunAdı.pdf</code></li>
                         <li>• Örnek: <code>FireTeam_SpaceRunner.pdf</code></li>
+                        <li>• Formu doldururken Google hesabınızla giriş yapmanız gerekiyor</li>
                       </ul>
                     </div>
 
@@ -912,6 +913,10 @@ export default function JamScoringAndStand() {
                         <li>• MVP tanımı ve risk analizi</li>
                         <li>• Telif ve etik beyanları</li>
                       </ul>
+                    </div>
+
+                    <div className="rounded-lg border bg-muted/20 p-3 text-xs text-muted-foreground">
+                      Gönderimi tamamladıktan sonra düzenleme yapılamaz; değişiklik gerekirse <strong>yeni bir form gönderimi</strong> oluşturun.
                     </div>
 
                     <FilenameHelper />
