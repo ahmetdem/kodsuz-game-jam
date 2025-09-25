@@ -152,6 +152,7 @@ const RAW_TEAM_NAMES = [
   "Bigwows",
   "Dreamers",
   "Yıldırım",
+  "ostwindgames",
   "Seylm",
   "Luminelle",
   "Barutçu",
