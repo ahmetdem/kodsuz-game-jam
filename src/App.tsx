@@ -161,6 +161,7 @@ const RAW_TEAM_NAMES = [
   "Stick Nation",
   "Escapers",
   "goodstar",
+  "kyezo",
   "Boogie",
   "Des-game",
   "Gaia's Duality",
