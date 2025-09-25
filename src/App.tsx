@@ -375,7 +375,7 @@ function ThemeRevealCard() {
   const autoRevealed = now >= revealAt;
   const revealed = autoRevealed;
 
-  const THEME = "Naber"; // Etkinlik günü değiştirilir
+  const THEME = "İklim"; // Etkinlik günü değiştirilir
 
   return (
     <Card>
