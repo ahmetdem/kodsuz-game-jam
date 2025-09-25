@@ -374,9 +374,10 @@ function DeadlineBar() {
   const now = useNow(1000);
   const submit = new Date(DEADLINES.submitISO).getTime();
   const juryEnd = new Date(DEADLINES.juryEndISO).getTime();
+  const bufferMs = 20 * 60 * 1000; // ekstra 20 dakika
 
-  const toSubmit = submit - now;
-  const toJuryEnd = juryEnd - now;
+  const toSubmit = submit - now + bufferMs;
+  const toJuryEnd = juryEnd - now + bufferMs;
 
   return (
     <div className="mt-3 grid gap-3 md:grid-cols-2">
