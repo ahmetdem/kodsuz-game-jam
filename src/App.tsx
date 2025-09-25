@@ -160,6 +160,7 @@ const RAW_TEAM_NAMES = [
   "Team Phoenix",
   "Stick Nation",
   "Escapers",
+  "goodstar",
   "Boogie",
   "Des-game",
   "Gaia's Duality",
