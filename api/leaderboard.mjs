@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     const table = Array.from(byTeam, ([team, arr]) => {
       const avgTotal = Math.round(avg(arr, "total"));
       const tie = [avg(arr,"originality"), avg(arr,"loop"), avg(arr,"theme")];
-      return { team, avg: avgTotal, count: arr.length, tiebreak: tie };
+      return { team, avg: avgTotal, tiebreak: tie };
     }).sort((a,b)=>{
       if (b.avg !== a.avg) return b.avg - a.avg;
       for (let i=0;i<3;i++){

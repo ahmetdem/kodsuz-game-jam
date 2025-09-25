@@ -759,7 +759,6 @@ function Leaderboard({ active }: { active: boolean }) {
                 <th className="py-2">Sıra</th>
                 <th className="py-2">Takım</th>
                 <th className="py-2">Ortalama</th>
-                <th className="py-2">Jüri</th>
               </tr>
             </thead>
             <tbody>
@@ -768,7 +767,6 @@ function Leaderboard({ active }: { active: boolean }) {
                   <td className="py-2">{i + 1}</td>
                   <td className="py-2 font-medium">{row.team}</td>
                   <td className="py-2">{row.avg}</td>
-                  <td className="py-2">{row.count}</td>
                 </tr>
               ))}
             </tbody>
