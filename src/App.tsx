@@ -147,10 +147,30 @@ const JURY_MEMBERS = [
   "Efe Acer",
 ] as const;
 
-const TEAM_NAMES: readonly string[] = [
-  // "Takım Alpha",
-  // "Takım Beta",
-]; // Jam günü kesinleşen takım adlarıyla güncelleyin
+const RAW_TEAM_NAMES = [
+  "Kustel",
+  "Bigwows",
+  "Dreamers",
+  "Yıldırım",
+  "Seylm",
+  "Luminelle",
+  "Barutçu",
+  "Kurbağa kermitler",
+  "Kutluk",
+  "Team Phoenix",
+  "Stick Nation",
+  "Escapers",
+  "Boogie",
+  "Des-game",
+  "Gaia's Duality",
+  "OnlyChampion",
+  "HorcruxHunter5903",
+  "Kara Elma",
+  "Velaroft",
+  "Aldn",
+] as const;
+
+const TEAM_NAMES: readonly string[] = RAW_TEAM_NAMES.map(standardizeTeamName);
 
 const EVENT_ID = "kgj-2025"; // etkinlik kodu
 const API_SCORE = "/api/score"; // vercel function yolu
@@ -163,6 +183,10 @@ function calcTotal(scores: Record<RubricKey, number>) {
 
 type RubricKey = (typeof RUBRIC)[number]["key"];
 
+
+function standardizeTeamName(name: string) {
+  return name.trim().replace(/\s+/g, " ").toLocaleLowerCase("tr-TR");
+}
 
 function pad(n: number) { return n.toString().padStart(2, '0') }
 function msToHMS(ms: number) {
@@ -505,16 +529,18 @@ function JuryPanel() {
   });
   const total = calcTotal(scores);
 
-  const resolvedTeam = TEAM_NAMES.length === 0
+  const resolvedTeamRaw = TEAM_NAMES.length === 0
     ? customTeam
     : teamSelection === "__custom__"
       ? customTeam
       : teamSelection;
 
+  const resolvedTeam = standardizeTeamName(resolvedTeamRaw);
+
   async function submit() {
     if (!token) return alert("Önce parolayla giriş yapın.");
-    if (!judge.trim() || !resolvedTeam.trim()) return alert("Jüri ve Takım alanları zorunlu.");
-    const payload: any = { event: EVENT_ID, judge, team: resolvedTeam.trim(), total };
+    if (!judge.trim() || !resolvedTeam) return alert("Jüri ve Takım alanları zorunlu.");
+    const payload: any = { event: EVENT_ID, judge, team: resolvedTeam, total };
     for (const r of RUBRIC) payload[r.key] = scores[r.key] ?? 0;
 
     const res = await fetch(API_SCORE, {
@@ -622,7 +648,7 @@ function JuryPanel() {
                   <Input
                     value={customTeam}
                     onChange={(e) => setCustomTeam(e.target.value)}
-                    placeholder="Takım adını yazın"
+                    placeholder="Takım adını yazın (otomatik küçük harf)"
                     className="w-56"
                   />
                 )}
@@ -631,7 +657,7 @@ function JuryPanel() {
               <Input
                 value={customTeam}
                 onChange={(e) => setCustomTeam(e.target.value)}
-                placeholder="Takım adını yazın"
+                placeholder="Takım adını yazın (otomatik küçük harf)"
                 className="w-56"
               />
             )}
@@ -688,7 +714,13 @@ function Leaderboard({ active }: { active: boolean }) {
       setLoading(true);
       const r = await fetch("/api/leaderboard?event=kgj-2025", { cache: "no-store" });
       const j = await r.json();
-      setData(Array.isArray(j) ? j : []);
+      const normalized = Array.isArray(j)
+        ? j.map((row: any) => ({
+          ...row,
+          team: typeof row.team === "string" ? standardizeTeamName(row.team) : row.team,
+        }))
+        : [];
+      setData(normalized);
     } catch (e) {
       console.error(e);
     } finally {
