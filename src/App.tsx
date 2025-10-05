@@ -186,6 +186,19 @@ function calcTotal(scores: Record<RubricKey, number>) {
 
 type RubricKey = (typeof RUBRIC)[number]["key"];
 
+type VoteRecord = {
+  id?: string;
+  ts?: string;
+  judge?: string;
+  team?: string;
+  total?: number;
+  theme?: number;
+  loop?: number;
+  originality?: number;
+  doc?: number;
+  feas?: number;
+  visual?: number;
+};
 
 function standardizeTeamName(name: string) {
   return name.trim().replace(/\s+/g, " ").toLocaleLowerCase("tr-TR");
@@ -777,6 +790,174 @@ function Leaderboard({ active }: { active: boolean }) {
   );
 }
 
+function JuryVotes({ active }: { active: boolean }) {
+  const [votes, setVotes] = React.useState<VoteRecord[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [selectedJudge, setSelectedJudge] = React.useState<string>("all");
+
+  const load = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch("/api/votes?event=kgj-2025", { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      const normalized = Array.isArray(payload)
+        ? payload.map((vote: any) => ({
+            id: vote.id ?? `${vote.judge ?? ""}-${vote.team ?? ""}-${vote.ts ?? Math.random()}`,
+            ts: typeof vote.ts === "string" ? vote.ts : undefined,
+            judge: typeof vote.judge === "string" ? vote.judge : undefined,
+            team: typeof vote.team === "string" ? vote.team : undefined,
+            total: Number(vote.total) || 0,
+            theme: Number(vote.theme) || 0,
+            loop: Number(vote.loop) || 0,
+            originality: Number(vote.originality) || 0,
+            doc: Number(vote.doc) || 0,
+            feas: Number(vote.feas) || 0,
+            visual: Number(vote.visual) || 0,
+          }))
+        : [];
+      setVotes(normalized);
+    } catch (err) {
+      console.error(err);
+      setError("Veriler yüklenirken bir hata oluştu.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (active) {
+      load();
+    }
+  }, [active, load]);
+
+  const judges = React.useMemo(() => {
+    const list = new Set<string>();
+    for (const vote of votes) {
+      if (vote.judge) list.add(vote.judge);
+    }
+    return Array.from(list).sort((a, b) => a.localeCompare(b, "tr"));
+  }, [votes]);
+
+  React.useEffect(() => {
+    if (selectedJudge !== "all" && !judges.includes(selectedJudge)) {
+      setSelectedJudge("all");
+    }
+  }, [judges, selectedJudge]);
+
+  const filteredVotes = React.useMemo(() => {
+    if (selectedJudge === "all") return votes;
+    return votes.filter((vote) => vote.judge === selectedJudge);
+  }, [votes, selectedJudge]);
+
+  const sortedVotes = React.useMemo(() => {
+    const clone = [...filteredVotes];
+    return clone.sort((a, b) => {
+      const totalDiff = (b.total ?? 0) - (a.total ?? 0);
+      if (totalDiff !== 0) return totalDiff;
+      const judgeCmp = String(a.judge || "").localeCompare(String(b.judge || ""), "tr");
+      if (judgeCmp !== 0) return judgeCmp;
+      const teamCmp = String(a.team || "").localeCompare(String(b.team || ""), "tr");
+      if (teamCmp !== 0) return teamCmp;
+      return String(a.ts || "").localeCompare(String(b.ts || ""));
+    });
+  }, [filteredVotes]);
+
+  const renderTimestamp = (value?: string) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+    return date.toLocaleString("tr-TR", { hour12: false });
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <CardTitle>Jüri Oyları</CardTitle>
+          <CardDescription>
+            Her jüri üyesinin hangi takıma kaç puan verdiğini buradan takip edin.
+          </CardDescription>
+        </div>
+        <div className="flex items-center gap-2">
+          <Label
+            htmlFor="judgeFilter"
+            className="hidden text-xs font-medium uppercase tracking-wide text-muted-foreground sm:block"
+          >
+            Jüri Seç
+          </Label>
+          <select
+            id="judgeFilter"
+            value={selectedJudge}
+            onChange={(event) => setSelectedJudge(event.target.value)}
+            className="h-9 rounded-md border border-input bg-white px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <option value="all">Tüm Jüriler</option>
+            {judges.map((judge) => (
+              <option key={judge} value={judge}>
+                {judge}
+              </option>
+            ))}
+          </select>
+          <Button variant="secondary" onClick={load} disabled={loading}>
+            {loading ? "Yükleniyor..." : "Yenile"}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {error && (
+          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+        {!error && filteredVotes.length === 0 && (
+          <div className="text-sm text-muted-foreground">
+            {loading ? "Oylar yükleniyor..." : "Henüz oy kaydı bulunmuyor."}
+          </div>
+        )}
+        {sortedVotes.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
+              <thead>
+                <tr className="text-left text-muted-foreground">
+                  <th className="py-2 pr-3">Jüri</th>
+                  <th className="py-2 pr-3">Takım</th>
+                  <th className="py-2 pr-3">Toplam</th>
+                  <th className="py-2 pr-3">Tema</th>
+                  <th className="py-2 pr-3">Döngü</th>
+                  <th className="py-2 pr-3">Özgünlük</th>
+                  <th className="py-2 pr-3">Belge</th>
+                  <th className="py-2 pr-3">Uyg.</th>
+                  <th className="py-2 pr-3">Görsel</th>
+                  <th className="py-2">Saat</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedVotes.map((vote) => (
+                  <tr key={vote.id} className="border-t">
+                    <td className="py-2 pr-3 font-medium">{vote.judge || "-"}</td>
+                    <td className="py-2 pr-3">{vote.team || "-"}</td>
+                    <td className="py-2 pr-3 font-semibold">{vote.total}</td>
+                    <td className="py-2 pr-3">{vote.theme}</td>
+                    <td className="py-2 pr-3">{vote.loop}</td>
+                    <td className="py-2 pr-3">{vote.originality}</td>
+                    <td className="py-2 pr-3">{vote.doc}</td>
+                    <td className="py-2 pr-3">{vote.feas}</td>
+                    <td className="py-2 pr-3">{vote.visual}</td>
+                    <td className="py-2 text-muted-foreground">{renderTimestamp(vote.ts)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function JamScoringAndStand() {
   const [activeTab, setActiveTab] = useState("score");
 
@@ -796,6 +977,7 @@ export default function JamScoringAndStand() {
             <TabsTrigger value="submit">Teslim</TabsTrigger>
             <TabsTrigger value="jury">Jüri</TabsTrigger>
             <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+            <TabsTrigger value="votes">Oylar</TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2 shrink-0">
             <Trophy className="h-5 w-5 text-yellow-500" />
@@ -964,6 +1146,11 @@ export default function JamScoringAndStand() {
         <TabsContent value="leaderboard" className="space-y-6">
           <HeaderStrip />
           <Leaderboard active={activeTab === "leaderboard"} />
+        </TabsContent>
+
+        <TabsContent value="votes" className="space-y-6">
+          <HeaderStrip />
+          <JuryVotes active={activeTab === "votes"} />
         </TabsContent>
 
         <TabsContent value="jury" className="space-y-6">
